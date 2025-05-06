@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Калькулятор Кулоновской силы</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white p-8 rounded-2xl shadow-xl max-w-3xl w-full">
+    <h2 class="text-2xl font-bold text-center text-blue-600 mb-6">Калькулятор Кулоновской силы</h2>
+
+    <div class="mb-4">
+      <label class="block font-medium text-gray-700 mb-1">Количество зарядов:</label>
+      <input type="number" id="chargeCount" min="2" value="2"
+             class="w-full p-2 border border-gray-300 rounded-md">
+      <button onclick="generateChargeInputs()"
+              class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        Ввод зарядов
+      </button>
+    </div>
+
+    <div id="chargeInputs" class="space-y-2"></div>
+    <div id="distanceInputs" class="mt-4 space-y-2"></div>
+
+    <button onclick="calculateForce()"
+            class="mt-6 w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">
+      Рассчитать
+    </button>
+
+    <div id="output" class="mt-6 bg-gray-100 p-4 rounded-md text-gray-800 text-sm whitespace-pre-wrap"></div>
+  </div>
+
+  <script>
+    const k = 9e9;
+
+    function generateChargeInputs() {
+      const n = parseInt(document.getElementById("chargeCount").value);
+      const chargeDiv = document.getElementById("chargeInputs");
+      const distanceDiv = document.getElementById("distanceInputs");
+      chargeDiv.innerHTML = '';
+      distanceDiv.innerHTML = '';
+
+      for (let i = 0; i < n; i++) {
+        chargeDiv.innerHTML += `
+          <div>
+            <label class="block text-gray-700">Заряд q${i+1} (Кл):</label>
+            <input type="number" step="any" id="q${i}" class="w-full p-2 border border-gray-300 rounded-md">
+          </div>`;
+      }
+
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = i + 1; j < n; j++) {
+          distanceDiv.innerHTML += `
+            <div>
+              <label class="block text-gray-700">Расстояние между q${i+1} и q${j+1} (м):</label>
+              <input type="number" step="any" min="0.0001" id="r${i}_${j}" class="w-full p-2 border border-gray-300 rounded-md">
+            </div>`;
+        }
+      }
+    }
+
+    function calculateForce() {
+      const n = parseInt(document.getElementById("chargeCount").value);
+      const charges = [];
+      let output = '';
+      let totalForce = 0;
+
+      for (let i = 0; i < n; i++) {
+        charges[i] = parseFloat(document.getElementById(`q${i}`).value);
+      }
+
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const r = parseFloat(document.getElementById(`r${i}_${j}`).value);
+          if (r === 0) {
+            document.getElementById("output").innerText = "Ошибка: расстояние не может быть ноль.";
+            return;
+          }
+
+          const q1 = charges[i], q2 = charges[j];
+          const F = k * Math.abs(q1 * q2) / (r ** 2);
+          totalForce += F;
+
+          const interaction = q1 * q2 > 0 ? 'отталкиваются' :
+                              q1 * q2 < 0 ? 'притягиваются' : 'один из зарядов равен нулю';
+
+          output += `Заряды ${i+1} и ${j+1} ${interaction} с силой ${F.toExponential(2)} Н\n`;
+        }
+      }
+
+      output += `\nОбщая сила: ${totalForce.toExponential(2)} Н`;
+      document.getElementById("output").innerText = output;
+    }
+  </script>
+</body>
+</html>
